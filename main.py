@@ -20,7 +20,7 @@ if not os.path.exists(warnings_folder):
 
 
 # -- config -- #
-bot_token = 'MTExMzA2MTk3NDIyMjMxOTcyNg.GhZOWa.5VX3B0AGSZyvTALYJBEen6ErDgHM0bpLATMe4k'
+bot_token = 'token'
 prefix = '-'
 
 # -- source -- #
