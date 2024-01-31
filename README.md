@@ -14,7 +14,7 @@
 **edit the py file, (atleast fill in the prefix, and bot token) edit the file to ur liking (Optional)**
 **done**
 
-**tutorial (source code)**
+**Tutorial (source code)**
 **copy the source code**
 **paste it into whatever you use**
 **edit the py file to your liking (atleast prefix and bot token)**
