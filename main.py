@@ -20,8 +20,8 @@ if not os.path.exists(warnings_folder):
 
 
 # -- config -- #
-bot_token = 'MTExMzA2MTk3NDIyMjMxOTcyNg.GwDnu3.3NDRDBZxBa0JH3jHVM2-GubzkgfSrepE7ap7Ug'
-prefix = ','
+bot_token = 'MTExMzA2MTk3NDIyMjMxOTcyNg.GhZOWa.5VX3B0AGSZyvTALYJBEen6ErDgHM0bpLATMe4k'
+prefix = '-'
 
 # -- source -- #
 
@@ -443,7 +443,7 @@ class Dropdown(discord.ui.Select):
             embed_data = {
                 "title": "Moderation Commands",
                 "description": (
-                    f"`💜` `{prefix}ban @user (reason`   - bans that user\n`💜` `{prefix}kick @user (reason)` - kicks that user\n`💜` `{prefix}warn @user (reason)` - warns that user\n`💜` `{prefix}warnings @user ` - shows user warnings\n`💜` `{prefix}role_add @user (role)` -  gives role from that user\n`💜` `{prefix}role_remove @user (role)` - removes role from that user\n`💜` `{prefix}purge (amount)` - purge messages in a channnel"
+                    f"`💜` `{prefix}ban @user (reason`   - bans that user\n`💜` `{prefix}kick @user (reason)` - kicks that user\n`💜` `{prefix}warn @user (reason)` - warns that user\n`💜` `{prefix}warnings @user ` - shows user warnings\n`💜` `{prefix}warn_remove (warn number)` - removes warning\n`💜` `{prefix}role_add @user (role)` -  gives role from that user\n`💜` `{prefix}role_remove @user (role)` - removes role from that user\n`💜` `{prefix}purge (amount)` - purge messages in a channnel"
                 ),
                 "color": discord.Color.green().value
             }
