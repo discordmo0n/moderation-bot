@@ -32,7 +32,10 @@ client = commands.Bot(command_prefix=prefix, intents=intents, help_command=None)
 async def on_ready():
   game = discord.Game("Moderation | V1") # change this to whatever
   await client.change_presence(activity=game, status=discord.Status.online) # more statuses: idle, invisible
-  print(f'Logged in as {client.user.name} Bot is ready')
+  print(f'Logged in as {client.user.name}')
+  print(f'===================================')
+  print(f'do {prefix}help to see available commands!')
+  print(f'===================================')
   invite_url = discord.utils.oauth_url(
       client.user.id, permissions=discord.Permissions(administrator=True))
 
@@ -357,7 +360,7 @@ async def purge_messages(ctx, amount: int):
 async def serverinfo(ctx):
     server_name = ctx.guild.name
     owner_name = ctx.guild.owner.name
-    creation_time = ctx.guild.created_at.strftime("%Y-%m-%d %H:%M:%S UTC")
+    creation_time = ctx.guild.created_at.strftime("%Y-%m-%d")
     boosts = ctx.guild.premium_subscription_count
     member_count = ctx.guild.member_count
     bot_count = sum(member.bot for member in ctx.guild.members)
@@ -365,27 +368,46 @@ async def serverinfo(ctx):
 
     embed = discord.Embed(
         title=f"{server_name} Info",
-        description=f"```Owner: {owner_name}```\n\n```Server Created at: {creation_time}```\n\n```Boosts: {boosts}```\n\n```Members: {member_count}```\n\n```Bots: {bot_count}```\n\n```Channels: {channel_count}```",
         color=0xDAA520  
     )
 
+    embed.add_field(name="Owner", value=f"```{owner_name}```", inline=True)
+    embed.add_field(name="Server Created at", value=f"```{creation_time}```", inline=True)
+    embed.add_field(name="Boosts", value=f"```{boosts}```", inline=True)
+    embed.add_field(name="Members", value=f"```{member_count}```", inline=True)
+    embed.add_field(name="Bots", value=f"```{bot_count}```", inline=True)
+    embed.add_field(name="Channels", value=f"```{channel_count}```", inline=True)
+
     await ctx.send(embed=embed)
+
+
 
 # -- user info -- #
 @client.command(name='userinfo')
 async def userinfo(ctx, user: discord.User):
-    username = user.name
-    creation_time = user.created_at.strftime("%Y-%m-%d %H:%M:%S UTC")
-    roles = [role.name for role in user.roles]
-    join_date = user.joined_at.strftime("%Y-%m-%d %H:%M:%S UTC")
+    member = ctx.guild.get_member(user.id)
 
-    embed = discord.Embed(
-        title=f"{username} Info",
-        description=f"```Username: {username}```\n\n```Account created at: {creation_time}```\n\n```Roles: {', '.join(roles)}```\n\n```Join Date: {join_date}```",
-        color=0xDAA520  
-    )
+    if member:
+        username = member.name
+        creation_time = member.created_at.strftime("%Y-%m-%d %H:%M:%S UTC")
+        roles = [role.name for role in member.roles]
+        join_date = member.joined_at.strftime("%Y-%m-%d %H:%M:%S UTC")
 
-    await ctx.send(embed=embed)
+        embed = discord.Embed(
+            title=f"{username} Info",
+            color=0xDAA520
+        )
+
+        embed.add_field(name="Username", value=f"```{username}```", inline=True)
+        embed.add_field(name="Account created at", value=f"```{creation_time}```", inline=True)
+        embed.add_field(name="Roles", value=f"```{', '.join(roles)}```", inline=True)
+        embed.add_field(name="Join Date", value=f"```{join_date}```", inline=True)
+
+        await ctx.send(embed=embed)
+    else:
+        await ctx.send("This user is not a member of the server.")
+
+
 
 # -- join message -- #
 @client.event
@@ -451,13 +473,24 @@ async def help(ctx):
     view = Dropdown()
 
     help_embed = discord.Embed(
-        title=f"{client.user.name} Commands",
+        title=f"Help Menu",
         description=f"""hello {ctx.author.mention} Select an option to get started with me!!!""", # change or keep this text up to u
         color=15856113
     )
     help_embed.set_footer(text='https://github.com/discordmo0n/moderation-bot')
 
     await ctx.send(embed=help_embed, view=DropdownView())
+
+# command error
+@client.event
+async def on_command_error(ctx, error):
+  if isinstance(error, commands.CommandNotFound):
+    embed = discord.Embed(
+        title="-- Error --",
+        description=f"```This command doesn't exist, do {prefix}help to see available commands```",
+        color=0xFF0000
+    )
+    await ctx.reply(embed=embed)
 
 
 client.run(bot_token)
