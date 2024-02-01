@@ -443,7 +443,7 @@ class Dropdown(discord.ui.Select):
             embed_data = {
                 "title": "Moderation Commands",
                 "description": (
-                    f"`💜` `{prefix}ban @user (reason`   - bans that user\n`💜` `{prefix}kick @user (reason)` - kicks that user\n`💜` `{prefix}warn @user (reason)` - warns that user\n`💜` `{prefix}warnings @user ` - shows user warnings\n`💜` `{prefix}warn_remove (warn number)` - removes warning\n`💜` `{prefix}role_add @user (role)` -  gives role from that user\n`💜` `{prefix}role_remove @user (role)` - removes role from that user\n`💜` `{prefix}purge (amount)` - purge messages in a channnel"
+                    f"`💜` `{prefix}ban @user (reason`   - bans that user\n`💜` `{prefix}kick @user (reason)` - kicks that user\n`💜` `{prefix}warn @user (reason)` - warns that user\n`💜` `{prefix}warnings @user ` - shows user warnings\n`💜` `{prefix}warn_remove @user (warn number)` - removes warning\n`💜` `{prefix}role_add @user (role)` -  gives role from that user\n`💜` `{prefix}role_remove @user (role)` - removes role from that user\n`💜` `{prefix}purge (amount)` - purge messages in a channnel"
                 ),
                 "color": discord.Color.green().value
             }
