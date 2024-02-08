@@ -22,7 +22,6 @@
 **edit the py file, (atleast fill in the prefix, and bot token) edit the file to ur liking (Optional)**
 
 **done**
-
 # -----------------------
 # Tutorial (source code)
 
@@ -40,5 +39,9 @@
 **unmute command**
 
 **membercount**
+# -----------------------
+# Fixes
+**Fixed warnings**
 
-# this was all done by me!
+**Fixed help command**
+# -----------------------
