@@ -2,17 +2,14 @@
 **This simple discord moderation bot is in 1 script to make it easy**
 
 # -----------------------
-
 # Features
 **saved warnings**
 
 **moderation commands**
 
 **utility commands**
-
 # -----------------------
-
-**Tutorial (download)**
+# Tutorial (download)
 
 **this is easy to use**
 
@@ -27,9 +24,8 @@
 **done**
 
 # -----------------------
+# Tutorial (source code)
 
-
-**Tutorial (source code)**
 **copy the source code**
 
 **paste it into whatever you use**
@@ -37,9 +33,7 @@
 **edit the py file to your liking (atleast prefix and bot token)**
 
 **Done**
-
 # -----------------------
-
 # Recently added
 **mute command**
 
