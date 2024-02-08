@@ -229,26 +229,40 @@ async def give_role(ctx, member: discord.Member = None, role: discord.Role = Non
 
 
 # -- warn -- #
-def load_user_warnings(user_id):
-    file_path = os.path.join(warnings_folder, f"{user_id}.json")
+def load_user_warnings(guild_id, user_id):
+    file_path = os.path.join(warnings_folder, f"{guild_id}_{user_id}.json")
     if os.path.exists(file_path):
         with open(file_path, 'r') as file:
             return json.load(file)
     return []
 
-def save_user_warnings(user_id, warnings):
-    file_path = os.path.join(warnings_folder, f"{user_id}.json")
+def save_user_warnings(guild_id, user_id, warnings):
+    file_path = os.path.join(warnings_folder, f"{guild_id}_{user_id}.json")
     with open(file_path, 'w') as file:
         json.dump(warnings, file)
 
 @client.command(name='warn')
 async def warn(ctx, user: discord.Member, *, reason: str):
     if ctx.author.guild_permissions.ban_members:
-        if user.id not in user_warnings:
-            user_warnings[user.id] = load_user_warnings(user.id)
+        if ctx.guild is None:
+            embed = discord.Embed(
+                title="Error",
+                description="This command must be used within a server.",
+                color=discord.Color.red()
+            )
+            await ctx.send(embed=embed)
+            return
 
-        user_warnings[user.id].append(reason)
-        save_user_warnings(user.id, user_warnings[user.id])
+        guild_id = ctx.guild.id
+
+        if guild_id not in user_warnings:
+            user_warnings[guild_id] = {}
+
+        if user.id not in user_warnings[guild_id]:
+            user_warnings[guild_id][user.id] = load_user_warnings(guild_id, user.id)
+
+        user_warnings[guild_id][user.id].append(reason)
+        save_user_warnings(guild_id, user.id, user_warnings[guild_id][user.id])
 
         embed = discord.Embed(
             title="User Warned",
@@ -268,6 +282,17 @@ async def warn(ctx, user: discord.Member, *, reason: str):
 @client.command(name='warn_remove')
 async def remove_warning(ctx, user: discord.Member, index: str):
     if ctx.author.guild_permissions.ban_members:
+        if ctx.guild is None:
+            embed = discord.Embed(
+                title="Error",
+                description="This command must be used within a server.",
+                color=discord.Color.red()
+            )
+            await ctx.send(embed=embed)
+            return
+
+        guild_id = ctx.guild.id
+
         try:
             index = int(index)
         except ValueError:
@@ -279,11 +304,14 @@ async def remove_warning(ctx, user: discord.Member, index: str):
             await ctx.reply(embed=embed)
             return
 
-        warnings = load_user_warnings(user.id)
+        if guild_id not in user_warnings:
+            user_warnings[guild_id] = {}
+
+        warnings = load_user_warnings(guild_id, user.id)
 
         if 0 <= index - 1 < len(warnings):
             removed_warning = warnings.pop(index - 1)
-            save_user_warnings(user.id, warnings)
+            save_user_warnings(guild_id, user.id, warnings)
 
             embed = discord.Embed(
                 title="Warning Removed",
@@ -309,7 +337,21 @@ async def remove_warning(ctx, user: discord.Member, index: str):
 @client.command(name='warnings')
 async def view_warnings(ctx, user: discord.Member):
     if ctx.author.guild_permissions.ban_members:
-        warnings = load_user_warnings(user.id)
+        if ctx.guild is None:
+            embed = discord.Embed(
+                title="Error",
+                description="This command must be used within a server.",
+                color=discord.Color.red()
+            )
+            await ctx.send(embed=embed)
+            return
+
+        guild_id = ctx.guild.id
+
+        if guild_id not in user_warnings:
+            user_warnings[guild_id] = {}
+
+        warnings = load_user_warnings(guild_id, user.id)
         if warnings:
             formatted_warnings = "\n".join([f"{i + 1}. {reason}" for i, reason in enumerate(warnings)])
             embed = discord.Embed(
@@ -336,8 +378,22 @@ async def view_warnings(ctx, user: discord.Member):
 @client.command(name='clear_warnings')
 async def clear_warnings(ctx, user: discord.Member):
     if ctx.author.guild_permissions.administrator:
-        user_warnings[user.id] = []
-        save_user_warnings(user.id, user_warnings[user.id])
+        if ctx.guild is None:
+            embed = discord.Embed(
+                title="Error",
+                description="This command must be used within a server.",
+                color=discord.Color.red()
+            )
+            await ctx.send(embed=embed)
+            return
+
+        guild_id = ctx.guild.id
+
+        if guild_id not in user_warnings:
+            user_warnings[guild_id] = {}
+
+        user_warnings[guild_id][user.id] = []
+        save_user_warnings(guild_id, user.id, user_warnings[guild_id][user.id])
 
         embed = discord.Embed(
             title=f"Warnings Cleared",
@@ -465,7 +521,7 @@ class Dropdown(discord.ui.Select):
             embed_data = {
                 "title": "Moderation Commands",
                 "description": (
-                    f"`💜` `{prefix}ban @user (reason`   - bans that user\n`💜` `{prefix}kick @user (reason)` - kicks that user\n`💜` `{prefix}warn @user (reason)` - warns that user\n`💜` `{prefix}warnings @user ` - shows user warnings\n`💜` `{prefix}warn_remove @user (warn number)` - removes warning\n`💜` `{prefix}clear_warnings @user` - clears all warnings\n`💜` `{prefix}role_add @user (role)` -  gives role from that user\n`💜` `{prefix}role_remove @user (role)` - removes role from that user\n`💜` `{prefix}purge (amount)` - purge messages in a channnel\n`💜` `{prefix}nuke` - nukes the channel to clear pings\n`💜` `{prefix}mute @user (duration) (reason)` - mutes the user\n`💜` `{prefix}unmute @user (reason) - unmutes user`"
+                    f"`💜` `{prefix}ban @user (reason`   - bans that user\n`💜` `{prefix}kick @user (reason)` - kicks that user\n`💜` `{prefix}warn @user (reason)` - warns that user\n`💜` `{prefix}warnings @user ` - shows user warnings\n`💜` `{prefix}warn_remove @user (warn number)` - removes warning\n`💜` `{prefix}clear_warnings @user` - clears all warnings\n`💜` `{prefix}role_add @user (role)` -  gives role from that user\n`💜` `{prefix}role_remove @user (role)` - removes role from that user\n`💜` `{prefix}purge (amount)` - purge messages in a channnel\n`💜` `{prefix}nuke` - nukes the channel to clear pings\n`💜` `{prefix}mute @user (duration) (reason)` - mutes the user\n`💜` `{prefix}unmute @user (reason)` - unmutes user"
                 ),
                 "color": discord.Color.green().value
             }
