@@ -352,7 +352,7 @@ async def clear_warnings(ctx, user: discord.Member):
         await ctx.reply(embed=embed)
 
 
-# -- purge --
+# -- purge -- #
 @client.command(name='purge')
 async def purge_messages(ctx, amount: int):
     if ctx.author.guild_permissions.manage_messages:
