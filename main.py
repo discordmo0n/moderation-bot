@@ -11,6 +11,8 @@ from discord.ui import Button, View
 from datetime import timezone
 import datetime
 import json
+import aiohttp
+
 
 warnings_folder = "warnings"
 user_warnings = {}
@@ -513,13 +515,14 @@ async def on_command_error(ctx, error):
     await ctx.reply(embed=embed)
 
 
+
 # -- mute -- #
 @client.command()
 async def mute(ctx, member: discord.Member, duration, *, reason="No reason provided"):
     if not ctx.author.guild_permissions.kick_members:
         error_embed = discord.Embed(
-            title="Error",
-            description="```You don't have permission to use this command!\n```",
+            title="Insufficient Permissions",
+            description="You don't have the required permissions to use this command.",
             color=discord.Color.red()
         )
         return await ctx.send(embed=error_embed)
@@ -587,8 +590,8 @@ def convert_to_seconds(duration):
 async def unmute(ctx, member: discord.Member, *, reason="No reason provided"):
     if not ctx.author.guild_permissions.kick_members:
         error_embed = discord.Embed(
-            title="Error",
-            description="```You don't have permission to use this command!\n```",
+            title="Insufficient Permissions",
+            description="You don't have the required permissions to use this command.",
             color=discord.Color.red()
         )
         return await ctx.send(embed=error_embed)
@@ -638,8 +641,8 @@ async def membercount(ctx):
 async def nuke(ctx):
   if not ctx.author.guild_permissions.manage_channels:
     embed = discord.Embed(
-        title="Missing Permissions",
-        description="You don't have Manage Channels permission(s) to run nuke!",
+        title="Insufficient Permissions",
+        description="You don't have the required permissions to use this command.",
         color=discord.Color.red())
     return await ctx.reply(embed=embed)
 
