@@ -22,7 +22,8 @@
 **Done**
 
 # Recently added
-**mute command**\n**unmute command**
-**membercount**
+**mute command**:
+**unmute command**:
+**membercount**:
 
 # this was all done by me!
