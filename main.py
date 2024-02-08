@@ -658,7 +658,7 @@ async def unmute(ctx, member: discord.Member, *, reason="No reason provided"):
             "Authorization": f"Bot {ctx.bot.http.token}",
             "Content-Type": "application/json",
         }
-        data = {"communication_disabled_until": None}  # Reset the mute status
+        data = {"communication_disabled_until": None} 
         async with session.patch(url, json=data, headers=headers) as response:
             if response.status != 204:
                 error_embed = discord.Embed(
