@@ -331,6 +331,26 @@ async def view_warnings(ctx, user: discord.Member):
         )
         await ctx.reply(embed=embed)
 
+@client.command(name='clear_warnings')
+async def clear_warnings(ctx, user: discord.Member):
+    if ctx.author.guild_permissions.administrator:
+        user_warnings[user.id] = []
+        save_user_warnings(user.id, user_warnings[user.id])
+
+        embed = discord.Embed(
+            title=f"Warnings Cleared",
+            description=f"All warnings for {user.mention} have been cleared.",
+            color=discord.Color.green()
+        )
+        await ctx.send(embed=embed)
+    else:
+        embed = discord.Embed(
+            title="Insufficient Permissions",
+            description="You don't have the required permissions to use this command.",
+            color=discord.Color.red()
+        )
+        await ctx.reply(embed=embed)
+
 
 # -- purge --
 @client.command(name='purge')
@@ -432,7 +452,7 @@ class Dropdown(discord.ui.Select):
     def __init__(self):
         options = [ 
             discord.SelectOption(label='Moderation', value='Moderation', emoji='<:mod:1202366370440806400>'), # change the emojis the bot doesnt need to be in the server!
-            discord.SelectOption(label='Utility', value='Utility', emoji='<:member:1202366373351919646>'), 
+            discord.SelectOption(label='Utility', value='Utility', emoji='<:member:1202366373351919646>'),  #    ^^^
         ]
         super().__init__(placeholder='Select', min_values=1, max_values=1, options=options)
 
@@ -443,7 +463,7 @@ class Dropdown(discord.ui.Select):
             embed_data = {
                 "title": "Moderation Commands",
                 "description": (
-                    f"`💜` `{prefix}ban @user (reason`   - bans that user\n`💜` `{prefix}kick @user (reason)` - kicks that user\n`💜` `{prefix}warn @user (reason)` - warns that user\n`💜` `{prefix}warnings @user ` - shows user warnings\n`💜` `{prefix}warn_remove @user (warn number)` - removes warning\n`💜` `{prefix}role_add @user (role)` -  gives role from that user\n`💜` `{prefix}role_remove @user (role)` - removes role from that user\n`💜` `{prefix}purge (amount)` - purge messages in a channnel"
+                    f"`💜` `{prefix}ban @user (reason`   - bans that user\n`💜` `{prefix}kick @user (reason)` - kicks that user\n`💜` `{prefix}warn @user (reason)` - warns that user\n`💜` `{prefix}warnings @user ` - shows user warnings\n`💜` `{prefix}warn_remove @user (warn number)` - removes warning\n`💜` `{prefix}clear_warnings @user` - clears all warnings\n`💜` `{prefix}role_add @user (role)` -  gives role from that user\n`💜` `{prefix}role_remove @user (role)` - removes role from that user\n`💜` `{prefix}purge (amount)` - purge messages in a channnel\n`💜` `{prefix}nuke` - nukes the channel to clear pings\n`💜` `{prefix}mute @user (duration) (reason)` - mutes the user\n`💜` `{prefix}unmute @user (reason) - unmutes user`"
                 ),
                 "color": discord.Color.green().value
             }
@@ -451,7 +471,7 @@ class Dropdown(discord.ui.Select):
             embed_data = {
                 "title": "Utility Commands",
                 "description": (
-                    f"`🤍` `{prefix}userinfo @user`   - shows user info\n`🤍` `{prefix}serverinfo` - shows server info"
+                    f"`🤍` `{prefix}userinfo @user`   - shows user info\n`🤍` `{prefix}serverinfo` - shows server info\n`🤍` `{prefix}membercount` - shows membercount"
                 ),
                 "color": discord.Color.gold().value
             }
@@ -481,7 +501,7 @@ async def help(ctx):
 
     await ctx.send(embed=help_embed, view=DropdownView())
 
-# command error
+# -- command error -- #
 @client.event
 async def on_command_error(ctx, error):
   if isinstance(error, commands.CommandNotFound):
@@ -491,6 +511,149 @@ async def on_command_error(ctx, error):
         color=0xFF0000
     )
     await ctx.reply(embed=embed)
+
+
+# -- mute -- #
+@client.command()
+async def mute(ctx, member: discord.Member, duration, *, reason="No reason provided"):
+    if not ctx.author.guild_permissions.kick_members:
+        error_embed = discord.Embed(
+            title="Error",
+            description="```You don't have permission to use this command!\n```",
+            color=discord.Color.red()
+        )
+        return await ctx.send(embed=error_embed)
+
+    if not duration:
+        error_embed = discord.Embed(
+            title="Error",
+            description="```You must specify a duration!\n```",
+            color=discord.Color.red()
+        )
+        return await ctx.send(embed=error_embed)
+
+    seconds = convert_to_seconds(duration)
+    if seconds is None or seconds < 10 or seconds > 2419200:
+        error_embed = discord.Embed(
+            title="Error",
+            description="```You can specify a duration between `10s - 24d`!\n```",
+            color=discord.Color.red()
+        )
+        return await ctx.send(embed=error_embed)
+
+    unmuting_time = datetime.datetime.utcnow() + datetime.timedelta(seconds=seconds)
+
+    async with aiohttp.ClientSession() as session:
+        url = f"https://discord.com/api/guilds/{ctx.guild.id}/members/{member.id}"
+        headers = {
+            "Authorization": f"Bot {ctx.bot.http.token}",
+            "Content-Type": "application/json",
+        }
+        data = {"communication_disabled_until": unmuting_time.isoformat()}
+        async with session.patch(url, json=data, headers=headers) as response:
+            if response.status != 204:
+                error_embed = discord.Embed(
+                    title="Error",
+                    description="```An error occurred, please try again.\n```",
+                    color=discord.Color.red()
+                )
+                return await ctx.send(embed=error_embed)
+
+    timed_out_embed = discord.Embed(
+        title=f"{ctx.author.name} has timed out {member.display_name}",
+        description=f"**Person Timed:** `{member.display_name}`\n**Reason:** `{reason}`\n**Duration:** `{duration}`",
+        color=discord.Color.red()
+    )
+    await ctx.send(embed=timed_out_embed)
+
+def convert_to_seconds(duration):
+    multipliers = {
+        "s": 1,
+        "m": 60,
+        "h": 3600,
+        "d": 86400
+    }
+    unit = duration[-1]
+    if unit not in multipliers:
+        return None
+    try:
+        time = int(duration[:-1]) * multipliers[unit]
+        return time
+    except ValueError:
+        return None 
+
+# -- unmute -- #
+@client.command()
+async def unmute(ctx, member: discord.Member, *, reason="No reason provided"):
+    if not ctx.author.guild_permissions.kick_members:
+        error_embed = discord.Embed(
+            title="Error",
+            description="```You don't have permission to use this command!\n```",
+            color=discord.Color.red()
+        )
+        return await ctx.send(embed=error_embed)
+
+    async with aiohttp.ClientSession() as session:
+        url = f"https://discord.com/api/guilds/{ctx.guild.id}/members/{member.id}"
+        headers = {
+            "Authorization": f"Bot {ctx.bot.http.token}",
+            "Content-Type": "application/json",
+        }
+        data = {"communication_disabled_until": None}  # Reset the mute status
+        async with session.patch(url, json=data, headers=headers) as response:
+            if response.status != 204:
+                error_embed = discord.Embed(
+                    title="Error",
+                    description="```An error occurred, please try again.\n```",
+                    color=discord.Color.red()
+                )
+                return await ctx.send(embed=error_embed)
+
+    unmute_embed = discord.Embed(
+        title=f"{member.display_name} has been unmuted",
+        description=f"**Reason:** `{reason}`",
+        color=discord.Color.green()
+    )
+    await ctx.send(embed=unmute_embed)
+
+# -- Membercount -- #
+@client.command(name='membercount')
+async def membercount(ctx):
+  total_members = ctx.guild.member_count
+  human_members = len(
+      [member for member in ctx.guild.members if not member.bot])
+  bot_members = len([member for member in ctx.guild.members if member.bot])
+
+  embed = discord.Embed(
+      title="Members",
+      description=
+      f"Total: **{total_members}**\nHumans: **{human_members}**\nBots: **{bot_members}**",
+  )
+  embed.set_author(name=ctx.guild.name)
+
+  await ctx.send(embed=embed)
+
+# -- nuke -- #
+@client.command(name='nuke')
+async def nuke(ctx):
+  if not ctx.author.guild_permissions.manage_channels:
+    embed = discord.Embed(
+        title="Missing Permissions",
+        description="You don't have Manage Channels permission(s) to run nuke!",
+        color=discord.Color.red())
+    return await ctx.reply(embed=embed)
+
+  channel_name = ctx.channel.name
+  channel_position = ctx.channel.position
+  channel_category = ctx.channel.category
+
+  await ctx.channel.delete()
+  new_channel = await ctx.guild.create_text_channel(channel_name,
+                                                    category=channel_category,
+                                                    position=channel_position)
+
+  await new_channel.send(f'Nuked by `{ctx.author.name}`')
+
 
 
 client.run(bot_token)
